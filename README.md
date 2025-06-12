@@ -40,7 +40,7 @@ This project is a local interview preparation tool that generates interview ques
    - (You may also need other API keys if using additional features.)
 3. **Run the backend:**
    ```bash
-   uvicorn main:app --reload
+   fastapi run main.py
    ```
    The API will be available at `http://localhost:8000`.
 
