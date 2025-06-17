@@ -27,6 +27,7 @@ class InterviewRequest(BaseModel):
     name: str
     job_title: str
     job_description: str
+    company_name: str = None
 
 class InterviewResponse(BaseModel):
     interview_id: int
@@ -34,7 +35,7 @@ class InterviewResponse(BaseModel):
 @app.post("/interview", response_model=InterviewResponse)
 def create_interview(req: InterviewRequest):
     try:
-        interview_id = create_interview_session(req.name, req.job_title, req.job_description)
+        interview_id = create_interview_session(req.name, req.job_title, req.job_description, req.company_name)
         return {"interview_id": interview_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -57,6 +58,7 @@ def generate_questions_for_interview(request: InterviewQuestionsRequest):
         questions = generate_interview_questions(
             job_title=interview["job_title"],
             job_description=interview["job_description"],
+            company_name=interview.get("company_name", ""),
             num_questions=request.num_questions or 5
         )
         questions_with_ids = add_generated_questions(request.interview_id, questions)

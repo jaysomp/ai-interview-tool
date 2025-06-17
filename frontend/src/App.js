@@ -46,9 +46,9 @@ function App() {
     });
   };
 
-  const handleStartInterview = async (name, jobTitle, jobDesc) => {
+  const handleStartInterview = async (name, jobTitle, jobDesc, companyName) => {
     setUserName(name);
-    const id = await startInterview(name, jobTitle, jobDesc);
+    const id = await startInterview(name, jobTitle, jobDesc, companyName);
     setInterviewId(id);
     const qs = await generateQuestions(id);
     setQuestions(qs);

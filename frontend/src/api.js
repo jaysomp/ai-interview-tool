@@ -2,11 +2,12 @@ import axios from 'axios';
 
 const API_BASE = 'http://localhost:8000';
 
-export const startInterview = async (name, jobTitle, jobDescription) => {
+export const startInterview = async (name, jobTitle, jobDescription, companyName) => {
   const res = await axios.post(`${API_BASE}/interview`, {
     name,
     job_title: jobTitle,
     job_description: jobDescription,
+    company_name: companyName,
   });
   return res.data.interview_id;
 };

@@ -21,6 +21,7 @@ def init_db():
                 name TEXT NOT NULL,
                 job_title TEXT NOT NULL,
                 job_description TEXT NOT NULL,
+                company_name TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -49,12 +50,12 @@ def init_db():
         """)
         conn.commit()
 
-def create_interview_session(name, job_title, job_description):
+def create_interview_session(name, job_title, job_description, company_name=None):
     with get_connection() as conn:
         c = conn.cursor()
         c.execute(
-            "INSERT INTO interview_sessions (name, job_title, job_description) VALUES (?, ?, ?)",
-            (name, job_title, job_description)
+            "INSERT INTO interview_sessions (name, job_title, job_description, company_name) VALUES (?, ?, ?, ?)",
+            (name, job_title, job_description, company_name)
         )
         conn.commit()
         return c.lastrowid
@@ -89,12 +90,12 @@ def get_interview_by_id(interview_id):
     with get_connection() as conn:
         c = conn.cursor()
         c.execute(
-            "SELECT job_title, job_description FROM interview_sessions WHERE interview_id = ?",
+            "SELECT job_title, job_description, company_name FROM interview_sessions WHERE interview_id = ?",
             (interview_id,)
         )
         row = c.fetchone()
         if row:
-            return {"job_title": row[0], "job_description": row[1]}
+            return {"job_title": row[0], "job_description": row[1], "company_name": row[2]}
         return None
 
 def get_question_by_id(question_id):
