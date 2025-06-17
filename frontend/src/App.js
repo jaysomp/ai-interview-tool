@@ -4,7 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import StartInterviewForm from './components/StartInterviewForm';
-import QuestionsList from './components/QuestionsList';
+import InterviewSession from './components/InterviewSession';
 import AnswerPanel from './components/AnswerPanel';
 import ScoreResult from './components/ScoreResult';
 import { startInterview, generateQuestions, scoreResponse } from './api';
@@ -12,9 +12,8 @@ import { startInterview, generateQuestions, scoreResponse } from './api';
 function App() {
   const [interviewId, setInterviewId] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
-  const [score, setScore] = useState(null);
-  const [reasoning, setReasoning] = useState('');
+  const [answers, setAnswers] = useState({}); // { [question_id]: transcript }
+  const [scores, setScores] = useState({}); // { [question_id]: { score, reasoning } }
   const [mode, setMode] = useState(() => localStorage.getItem('themeMode') || 'light');
   const [userName, setUserName] = useState('');
 
@@ -52,23 +51,24 @@ function App() {
     setInterviewId(id);
     const qs = await generateQuestions(id);
     setQuestions(qs);
-    setSelectedQuestion(null);
-    setScore(null);
-    setReasoning('');
+    setAnswers({});
+    setScores({});
   };
 
-  const handleSelectQuestion = (q) => {
-    setSelectedQuestion(q);
-    setScore(null);
-    setReasoning('');
+  // Called when the user submits an answer for a question
+  const handleAnswer = (question_id, transcript) => {
+    setAnswers(prev => ({ ...prev, [question_id]: transcript }));
   };
 
-  const handleScore = async (transcript) => {
-    if (!selectedQuestion) return;
-    const res = await scoreResponse(selectedQuestion.question_id, transcript);
-    setScore(res.score);
-    setReasoning(res.reasoning);
+  const handleScore = async (question_id) => {
+    const transcript = answers[question_id];
+    if (!transcript) return;
+    const res = await scoreResponse(question_id, transcript);
+    setScores(prev => ({ ...prev, [question_id]: { score: res.score, reasoning: res.reasoning } }));
   };
+
+  // Calculate progress as % answered
+  const progress = questions.length > 0 ? (Object.keys(answers).length / questions.length) * 100 : 0;
 
   return (
     <ThemeProvider theme={theme}>
@@ -86,26 +86,30 @@ function App() {
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl" sx={{ py: 4, minHeight: '90vh' }}>
-        <Paper sx={{ p: 3, mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 0 }}>
-          <StartInterviewForm onStart={handleStartInterview} />
-        </Paper>
-        {interviewId && (
-          <>
-            <Divider sx={{ my: 4 }} />
-            <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4} alignItems="stretch" sx={{ width: '100%', minHeight: 500 }}>
-              <Box flex={1} minWidth={270} maxWidth={340} sx={{ alignSelf: 'stretch', display: 'flex' }}>
-                <QuestionsList questions={questions} selectedId={selectedQuestion?.question_id} onSelect={handleSelectQuestion} />
-              </Box>
-              <Box flex={3} minWidth={320} sx={{ alignSelf: 'stretch', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {selectedQuestion && (
-                  <AnswerPanel question={selectedQuestion} onScore={handleScore} userName={userName} />
-                )}
-                {score !== null && (
-                  <ScoreResult score={score} reasoning={reasoning} />
-                )}
-              </Box>
-            </Box>
-          </>
+        {!interviewId ? (
+          <Paper sx={{ p: 3, mb: 4, maxWidth: 900, mx: 'auto', borderRadius: 0 }}>
+            <StartInterviewForm onStart={handleStartInterview} />
+          </Paper>
+        ) : (
+          <InterviewSession
+            questions={questions}
+            answers={answers}
+            scores={scores}
+            onAnswer={handleAnswer}
+            onScore={handleScore}
+            progress={progress}
+            userName={userName}
+            onGenerateMore={async () => {
+              if (!interviewId) return;
+              const more = await generateQuestions(interviewId, 3);
+              setQuestions(prev => {
+                const existingIds = new Set(prev.map(q => q.question_id));
+                const existingTexts = new Set(prev.map(q => q.question_text.trim().toLowerCase()));
+                const filtered = more.filter(q => !existingIds.has(q.question_id) && !existingTexts.has(q.question_text.trim().toLowerCase()));
+                return [...prev, ...filtered];
+              });
+            }}
+          />
         )}
       </Container>
     </ThemeProvider>
