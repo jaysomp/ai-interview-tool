@@ -37,6 +37,10 @@ This project is a local interview preparation tool that generates interview ques
      ```env
      GEMINI_API_KEY=your_gemini_api_key_here
      ```
+   - If you want to use the search functionality (Serper API), add your Serper API key to `.env` or `modules/.env`:
+     ```env
+     SERPER_API_KEY=your_serper_api_key_here
+     ```
    - (You may also need other API keys if using additional features.)
 3. **Run the backend:**
    ```bash
@@ -84,10 +88,21 @@ The application uses a local SQLite database (`interview.db`) with the following
   - `reasoning` (TEXT)
   - `created_at` (TIMESTAMP)
 
+## Clearing the Database
+
+If you want to reset the database and delete all stored interview sessions, questions, and scores, you can use the `clear_db.py` script provided in the project root.
+
+**Usage:**
+```bash
+python clear_db.py
+```
+
+**Warning:** This will permanently delete all interview data from the database (`interview.db`). Use this script only if you are sure you want to clear all data.
 ## Notes
 - Secrets in `.env` files are ignored by git for security.
 - Make sure both backend and frontend are running for full functionality.
 - Configure your Gemini API key in `.env` or `modules/.env` as described above. This is required for AI-powered question generation and scoring.
+- If you want to use the search feature, configure your Serper API key in `.env` or `modules/.env` as described above.
 
 ---
 If you have any issues, please open an issue or contact the maintainer.
