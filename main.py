@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from modules.question_generation import generate_interview_questions
 from modules.score_response import score_response
-from modules.db import init_db, create_interview_session, add_generated_questions, add_score
+from modules.db import init_db, create_interview_session, add_generated_questions, add_score, get_all_interview_history, get_interview_by_id, get_question_by_id, clear_all_tables
 
 app = FastAPI()
 
@@ -51,7 +51,6 @@ class InterviewQuestionsResponse(BaseModel):
 @app.post("/generate_questions_for_interview", response_model=InterviewQuestionsResponse)
 def generate_questions_for_interview(request: InterviewQuestionsRequest):
     try:
-        from modules.db import get_interview_by_id
         interview = get_interview_by_id(request.interview_id)
         if not interview:
             raise HTTPException(status_code=404, detail="Interview not found")
@@ -84,7 +83,6 @@ class ScoreResponse(BaseModel):
 @app.post("/score_response", response_model=ScoreResponse)
 def score_response_endpoint(request: ScoreRequest):
     try:
-        from modules.db import get_question_by_id, get_interview_by_id
         question = get_question_by_id(request.question_id)
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")
@@ -98,5 +96,34 @@ def score_response_endpoint(request: ScoreRequest):
         )
         score_id = add_score(question["interview_id"], request.question_id, score, reasoning)
         return {"score": score, "reasoning": reasoning, "score_id": score_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from fastapi.responses import JSONResponse
+
+@app.get("/interview_history")
+def interview_history():
+    try:
+        interviews = get_all_interview_history()
+        return {"interviews": interviews}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/interview_history/{interview_id}")
+def interview_detail(interview_id: int):
+    try:
+        interviews = get_all_interview_history()
+        for interview in interviews:
+            if interview["interview_id"] == interview_id:
+                return {"interview": interview}
+        raise HTTPException(status_code=404, detail="Interview not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/clear_history")
+def clear_interview_history():
+    try:
+        clear_all_tables()
+        return {"message": "All interview history cleared successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

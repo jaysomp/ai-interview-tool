@@ -27,3 +27,18 @@ export const scoreResponse = async (questionId, response) => {
   });
   return res.data;
 };
+
+export const getInterviewHistory = async () => {
+  const res = await axios.get(`${API_BASE}/interview_history`);
+  return res.data.interviews;
+};
+
+export const getInterviewDetail = async (interviewId) => {
+  const res = await axios.get(`${API_BASE}/interview_history/${interviewId}`);
+  return res.data.interview;
+};
+
+export const clearHistory = async () => {
+  const res = await axios.delete(`${API_BASE}/clear_history`);
+  return res.data;
+};

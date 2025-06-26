@@ -109,3 +109,58 @@ def get_question_by_id(question_id):
         if row:
             return {"question_text": row[0], "interview_id": row[1]}
         return None
+
+def clear_all_tables():
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute("DELETE FROM scores;")
+        c.execute("DELETE FROM generated_questions;")
+        c.execute("DELETE FROM interview_sessions;")
+        conn.commit()
+        print("All tables cleared.")
+
+def get_all_interview_history():
+    """
+    Returns a list of all interviews with their questions, answers, scores, and reasoning.
+    Each interview contains: interview_id, name, job_title, job_description, company_name, created_at, questions (list of dicts)
+    Each question contains: question_id, question_text, answer, score, reasoning
+    """
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute("""
+            SELECT interview_id, name, job_title, job_description, company_name, created_at
+            FROM interview_sessions
+            ORDER BY created_at DESC
+        """)
+        interviews = c.fetchall()
+        result = []
+        for interview in interviews:
+            interview_id, name, job_title, job_description, company_name, created_at = interview
+            # Get questions for this interview
+            c.execute("""
+                SELECT q.question_id, q.question_text, s.score, s.reasoning, s.rowid, s.score_id
+                FROM generated_questions q
+                LEFT JOIN scores s ON q.question_id = s.question_id AND s.interview_id = ?
+                WHERE q.interview_id = ?
+            """, (interview_id, interview_id))
+            questions = []
+            for q in c.fetchall():
+                question_id, question_text, score, reasoning, _, _ = q
+                # For extensibility, you could add an 'answer' field if you store answers
+                questions.append({
+                    'question_id': question_id,
+                    'question_text': question_text,
+                    'score': score,
+                    'reasoning': reasoning,
+                    'answer': None  # Placeholder if you add answer storage
+                })
+            result.append({
+                'interview_id': interview_id,
+                'name': name,
+                'job_title': job_title,
+                'job_description': job_description,
+                'company_name': company_name,
+                'created_at': created_at,
+                'questions': questions
+            })
+        return result
