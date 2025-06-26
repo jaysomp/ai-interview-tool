@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Box, Button, Typography, Paper, Chip, CircularProgress, Fade, useTheme, Tooltip } from '@mui/material';
-import MicIcon from '@mui/icons-material/Mic';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
+import { Box, Button, Typography, Paper, Chip, CircularProgress, Fade, useTheme, Tooltip, Stack, alpha, InputAdornment, TextField } from '@mui/material';
+import { Mic, MicOff, KeyboardVoice, Edit } from '@mui/icons-material';
 
 export default function AnswerPanel({ question, transcript, onTranscript, scoring, disabled, userName }) {
   const [recording, setRecording] = React.useState(false);
@@ -63,76 +62,134 @@ export default function AnswerPanel({ question, transcript, onTranscript, scorin
   };
 
   return (
-    <Paper sx={{ p: { xs: 2, md: 3 }, mt: 2, borderRadius: 2, background: theme.palette.background.paper, boxShadow: theme.shadows[1] }} elevation={0}>
-      <Box display="flex" gap={2} alignItems="center" mb={2}>
-        <Tooltip title={recording ? 'Recording...' : 'Start recording'}>
-          <span>
-            <Button
-              onClick={startRecording}
-              disabled={recording || disabled || scoring}
-              variant="contained"
-              color="primary"
-              sx={{
-                minWidth: 44,
-                height: 44,
-                borderRadius: '50%',
-                p: 0,
-                boxShadow: recording ? `0 0 0 4px ${theme.palette.primary.light}` : 'none',
-                animation: recording ? 'pulse 1.2s infinite' : 'none',
-                '@keyframes pulse': {
-                  '0%': { boxShadow: `0 0 0 0 ${theme.palette.primary.light}` },
-                  '70%': { boxShadow: `0 0 0 10px rgba(0,0,0,0)` },
-                  '100%': { boxShadow: `0 0 0 0 ${theme.palette.primary.light}` },
-                },
-              }}
-              disableElevation
-            >
-              <MicIcon sx={{ color: recording ? theme.palette.error.main : theme.palette.primary.contrastText, fontSize: 28 }} />
-            </Button>
-          </span>
-        </Tooltip>
-        <Tooltip title="Stop recording">
-          <span>
-            <Button
-              onClick={stopRecording}
-              disabled={!recording || disabled || scoring}
-              variant="outlined"
-              color="error"
-              sx={{ minWidth: 44, height: 44, borderRadius: '50%', p: 0 }}
-            >
-              <StopCircleIcon sx={{ fontSize: 28 }} />
-            </Button>
-          </span>
-        </Tooltip>
-        {recording && <Chip label="LIVE" color="error" size="small" sx={{ fontWeight: 700, ml: 1, letterSpacing: 1, animation: 'blink 1s steps(2, start) infinite' }} />}
-      </Box>
-      <Box mb={2}>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>Transcript</Typography>
-        <Box sx={{
-          background: theme.palette.mode === 'dark' ? '#23242b' : '#f3eaff',
-          borderRadius: 2,
-          p: 2,
-          mb: 1,
-        }}>
-          <textarea
+    <Paper 
+      elevation={0}
+      sx={{ 
+        p: 3, 
+        borderRadius: 2, 
+        background: alpha(theme.palette.primary.main, 0.02),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+      }}
+    >
+      <Stack spacing={3}>
+        <Box>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Your Answer
+          </Typography>
+          
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Tooltip title={recording ? 'Recording in progress...' : 'Start voice recording'}>
+              <span>
+                <Button
+                  onClick={startRecording}
+                  disabled={recording || disabled || scoring}
+                  variant={recording ? "contained" : "outlined"}
+                  color="primary"
+                  sx={{
+                    minWidth: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    p: 0,
+                    boxShadow: recording ? `0 0 0 3px ${alpha(theme.palette.primary.main, 0.3)}` : 'none',
+                    animation: recording ? 'pulse 2s infinite' : 'none',
+                    '@keyframes pulse': {
+                      '0%': { 
+                        boxShadow: `0 0 0 0 ${alpha(theme.palette.primary.main, 0.4)}`,
+                        transform: 'scale(1)',
+                      },
+                      '50%': { 
+                        boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.1)}`,
+                        transform: 'scale(1.05)',
+                      },
+                      '100%': { 
+                        boxShadow: `0 0 0 0 ${alpha(theme.palette.primary.main, 0)}`,
+                        transform: 'scale(1)',
+                      },
+                    },
+                  }}
+                >
+                  {recording ? <KeyboardVoice sx={{ fontSize: 24 }} /> : <Mic sx={{ fontSize: 24 }} />}
+                </Button>
+              </span>
+            </Tooltip>
+            
+            {recording && (
+              <Tooltip title="Stop recording">
+                <Button
+                  onClick={stopRecording}
+                  variant="outlined"
+                  color="error"
+                  sx={{ minWidth: 48, height: 48, borderRadius: 2, p: 0 }}
+                >
+                  <MicOff sx={{ fontSize: 24 }} />
+                </Button>
+              </Tooltip>
+            )}
+            
+            {recording && (
+              <Chip 
+                label="Recording..." 
+                color="error" 
+                size="small" 
+                sx={{ 
+                  fontWeight: 600,
+                  animation: 'blink 1.5s ease-in-out infinite',
+                  '@keyframes blink': {
+                    '0%, 50%': { opacity: 1 },
+                    '51%, 100%': { opacity: 0.5 },
+                  },
+                }} 
+              />
+            )}
+          </Stack>
+          
+          {!recording && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Click the microphone to record your answer, or type it manually below.
+            </Typography>
+          )}
+        </Box>
+
+        <Box>
+          <TextField
             value={transcript}
             onChange={e => onTranscript(e.target.value)}
-            placeholder="Type your answer or use the mic..."
+            placeholder="Type your answer here, or use voice recording above..."
             disabled={scoring || disabled}
-            style={{
-              width: '100%',
-              minHeight: 72,
-              background: 'transparent',
-              color: theme.palette.text.primary,
-              border: 'none',
-              outline: 'none',
-              fontSize: '1rem',
-              fontFamily: 'inherit',
-              resize: 'vertical',
+            multiline
+            minRows={4}
+            maxRows={12}
+            fullWidth
+            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
+                  <Edit color="action" fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: theme.palette.background.paper,
+                '& textarea': {
+                  resize: 'vertical',
+                },
+              },
             }}
           />
+          
+          {transcript && (
+            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="caption" color="text.secondary">
+                {transcript.split(' ').length} words
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {transcript.length} characters
+              </Typography>
+            </Box>
+          )}
         </Box>
-      </Box>
+      </Stack>
     </Paper>
   );
 }

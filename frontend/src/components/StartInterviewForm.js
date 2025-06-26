@@ -1,123 +1,183 @@
 import React, { useState } from 'react';
-import { TextField, Button, Typography } from '@mui/material';
+import { TextField, Button, Typography, Paper, Box, Stack, Divider, useTheme, alpha } from '@mui/material';
+import { WorkOutline, PersonOutline, Business, Description } from '@mui/icons-material';
 
 export default function StartInterviewForm({ onStart }) {
   const [name, setName] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [jobDesc, setJobDesc] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const theme = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name && jobTitle && jobDesc && companyName) {
-      await onStart(name, jobTitle, jobDesc, companyName);
+    if (name && jobTitle && jobDesc && companyName && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await onStart(name, jobTitle, jobDesc, companyName);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
+  const isFormValid = name && jobTitle && jobDesc && companyName;
+
   return (
-    <form onSubmit={handleSubmit} style={{
-      background: 'rgba(24,26,32,0.92)',
-      color: '#ececec',
-      borderRadius: 24,
-      maxWidth: 480,
-      margin: '48px auto',
-      padding: '36px 28px',
-      boxShadow: '0 8px 32px 0 rgba(142,36,170,0.20)',
-      border: '1.5px solid rgba(142,36,170,0.10)',
-      backdropFilter: 'blur(10px)',
-      fontFamily: 'Inter, Noto Sans, sans-serif',
-    }}>
-      <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 3, color: '#fff', fontFamily: 'Inter, Noto Sans, sans-serif' }}>
-        Practice Interviews with AI
-      </Typography>
-      <div style={{ marginBottom: 24 }}>
-        <Typography sx={{ color: '#c5d0e6', fontWeight: 600, mb: 1 }}>Your Name</Typography>
-        <TextField
-          placeholder="First and last name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          fullWidth
-          required
-          variant="outlined"
-          sx={{
-            input: { color: '#fff', background: '#23242b', borderRadius: 2 },
-            fieldset: { borderColor: '#3d4d5c' },
-            mb: 2,
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 24 }}>
-        <Typography sx={{ color: '#c5d0e6', fontWeight: 600, mb: 1 }}>Company Name</Typography>
-        <TextField
-          placeholder="The company name"
-          value={companyName}
-          onChange={e => setCompanyName(e.target.value)}
-          fullWidth
-          required
-          variant="outlined"
-          sx={{
-            input: { color: '#fff', background: '#23242b', borderRadius: 2 },
-            fieldset: { borderColor: '#3d4d5c' },
-            mb: 2,
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 24 }}>
-        <Typography sx={{ color: '#c5d0e6', fontWeight: 600, mb: 1 }}>Job Title</Typography>
-        <TextField
-          placeholder="What's the role called?"
-          value={jobTitle}
-          onChange={e => setJobTitle(e.target.value)}
-          fullWidth
-          required
-          variant="outlined"
-          sx={{
-            input: { color: '#fff', background: '#23242b', borderRadius: 2 },
-            fieldset: { borderColor: '#3d4d5c' },
-            mb: 2,
-          }}
-        />
-      </div>
-      <div style={{ marginBottom: 32 }}>
-        <Typography sx={{ color: '#c5d0e6', fontWeight: 600, mb: 1 }}>Job Description</Typography>
-        <TextField
-          placeholder="Tell us about the role"
-          value={jobDesc}
-          onChange={e => setJobDesc(e.target.value)}
-          fullWidth
-          required
-          multiline
-          minRows={4}
-          variant="outlined"
-          sx={{
-            textarea: { color: '#fff', background: '#23242b', borderRadius: 2 },
-            fieldset: { borderColor: '#3d4d5c' },
-          }}
-        />
-      </div>
-      <Button
-        type="submit"
-        variant="contained"
-        sx={{
-          minWidth: 140,
-          height: 48,
-          fontWeight: 700,
-          fontSize: '1.1rem',
-          borderRadius: '14px',
-          background: 'linear-gradient(90deg, #6d1b7b 0%, #8e24aa 100%)',
-          color: '#fff',
-          boxShadow: '0 2px 8px 0 rgba(140,60,200,0.10)',
-          textTransform: 'none',
-          letterSpacing: 0.5,
-          transition: 'background 0.2s',
-          '&:hover': {
-            background: 'linear-gradient(90deg, #8e24aa 0%, #6d1b7b 100%)',
-            boxShadow: '0 2px 12px 0 rgba(140,60,200,0.18)',
-          },
-        }}
-      >
-        Generate Questions
-      </Button>
-    </form>
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 3, md: 4 },
+        borderRadius: 3,
+        background: theme.palette.background.paper,
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+        },
+      }}
+    >
+      <Stack spacing={3}>
+        <Box textAlign="center" sx={{ mb: 2 }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 800, 
+              mb: 1,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Practice Interviews with AI
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+            Get personalized interview questions and AI-powered feedback to improve your skills
+          </Typography>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <Stack spacing={3}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h6" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonOutline color="primary" fontSize="small" />
+                  Your Name
+                </Typography>
+                <TextField
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  fullWidth
+                  required
+                  variant="outlined"
+                  disabled={isSubmitting}
+                />
+              </Box>
+
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h6" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Business color="primary" fontSize="small" />
+                  Company Name
+                </Typography>
+                <TextField
+                  placeholder="e.g., Google, Microsoft, Startup Inc."
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                  fullWidth
+                  required
+                  variant="outlined"
+                  disabled={isSubmitting}
+                />
+              </Box>
+            </Stack>
+
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WorkOutline color="primary" fontSize="small" />
+                Job Title
+              </Typography>
+              <TextField
+                placeholder="e.g., Software Engineer, Product Manager"
+                value={jobTitle}
+                onChange={e => setJobTitle(e.target.value)}
+                fullWidth
+                required
+                variant="outlined"
+                disabled={isSubmitting}
+              />
+            </Box>
+
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Description color="primary" fontSize="small" />
+                Job Description
+              </Typography>
+              <TextField
+                placeholder="Paste the job description here, or describe the role requirements and responsibilities..."
+                value={jobDesc}
+                onChange={e => setJobDesc(e.target.value)}
+                fullWidth
+                required
+                multiline
+                minRows={4}
+                maxRows={8}
+                variant="outlined"
+                disabled={isSubmitting}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& textarea': {
+                      resize: 'vertical',
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ pt: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={!isFormValid || isSubmitting}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  },
+                  '&:disabled': {
+                    background: alpha(theme.palette.primary.main, 0.3),
+                    color: alpha(theme.palette.primary.contrastText, 0.7),
+                  },
+                }}
+              >
+                {isSubmitting ? 'Generating Questions...' : 'Start Interview Practice'}
+              </Button>
+            </Box>
+
+            <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 2 }}>
+              We'll generate personalized questions based on your job description and provide AI-powered feedback on your responses.
+            </Typography>
+          </Stack>
+        </Box>
+      </Stack>
+    </Paper>
   );
 }
