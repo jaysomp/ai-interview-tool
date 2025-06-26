@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Typography, Button, LinearProgress, Box, Paper, Stack, Chip, useTheme, alpha, Divider } from '@mui/material';
-import { CheckCircleOutline, HelpOutline, AddCircleOutline } from '@mui/icons-material';
+import { CheckCircleOutline, HelpOutline, AddCircleOutline, ExpandMore, ExpandLess } from '@mui/icons-material';
 import AnswerPanel from './AnswerPanel';
 import ScoreResult from './ScoreResult';
 
@@ -8,6 +8,7 @@ export default function InterviewSession({ questions, answers, scores, onAnswer,
   const theme = useTheme();
   const answeredCount = Object.keys(answers).length;
   const scoredCount = Object.keys(scores).length;
+  const [expandedQuestion, setExpandedQuestion] = useState(null);
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', mt: { xs: 2, md: 4 }, px: { xs: 2, md: 0 } }}>
@@ -73,6 +74,7 @@ export default function InterviewSession({ questions, answers, scores, onAnswer,
         {questions.map((q, idx) => {
           const isAnswered = !!answers[q.question_id];
           const isScored = !!scores[q.question_id];
+          const isExpanded = expandedQuestion === q.question_id;
           
           return (
             <Paper
@@ -92,13 +94,16 @@ export default function InterviewSession({ questions, answers, scores, onAnswer,
               }}
             >
               <Stack spacing={3}>
-                <Box>
+                <Box
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => setExpandedQuestion(isExpanded ? null : q.question_id)}
+                >
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
                       <HelpOutline color="primary" fontSize="small" />
                       Question {idx + 1}
                     </Typography>
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1} alignItems="center">
                       {isAnswered && (
                         <Chip
                           label="Answered"
@@ -116,6 +121,7 @@ export default function InterviewSession({ questions, answers, scores, onAnswer,
                           variant="filled"
                         />
                       )}
+                      {isExpanded ? <ExpandLess color="action" /> : <ExpandMore color="action" />}
                     </Stack>
                   </Stack>
                   
@@ -134,42 +140,49 @@ export default function InterviewSession({ questions, answers, scores, onAnswer,
                   </Typography>
                 </Box>
 
-                <AnswerPanel
-                  question={q}
-                  transcript={answers[q.question_id] || ''}
-                  onTranscript={t => onAnswer(q.question_id, t)}
-                  userName={userName}
-                  scoring={!!scores[q.question_id]}
-                  disabled={!!scores[q.question_id]}
-                />
-
-                {!isScored && (
-                  <Box>
-                    <Button
-                      variant="contained"
-                      onClick={() => onScore(q.question_id)}
-                      disabled={!isAnswered}
-                      sx={{
-                        px: 3,
-                        py: 1.5,
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {isAnswered ? 'Get AI Feedback' : 'Answer Required'}
-                    </Button>
-                  </Box>
-                )}
-
-                {isScored && (
-                  <>
-                    <Divider />
-                    <ScoreResult 
-                      score={scores[q.question_id].score} 
-                      reasoning={scores[q.question_id].reasoning} 
+                {isExpanded && (
+                  <Box onClick={(e) => e.stopPropagation()}>
+                    <AnswerPanel
+                      question={q}
+                      transcript={answers[q.question_id] || ''}
+                      onTranscript={t => onAnswer(q.question_id, t)}
+                      userName={userName}
+                      scoring={!!scores[q.question_id]}
+                      disabled={!!scores[q.question_id]}
                     />
-                  </>
+
+                    {!isScored && (
+                      <Box sx={{ mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onScore(q.question_id);
+                          }}
+                          disabled={!isAnswered}
+                          sx={{
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {isAnswered ? 'Get AI Feedback' : 'Answer Required'}
+                        </Button>
+                      </Box>
+                    )}
+
+                    {isScored && (
+                      <>
+                        <Divider sx={{ mt: 2 }} />
+                        <ScoreResult 
+                          score={scores[q.question_id].score} 
+                          reasoning={scores[q.question_id].reasoning} 
+                        />
+                      </>
+                    )}
+                  </Box>
                 )}
               </Stack>
             </Paper>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Container, Box, Typography, Divider, Paper, AppBar, Toolbar, IconButton, Tooltip, CssBaseline, Stack, alpha } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Brightness4, Brightness7, History } from '@mui/icons-material';
@@ -6,6 +6,7 @@ import StartInterviewForm from './components/StartInterviewForm';
 import InterviewSession from './components/InterviewSession';
 import AnswerPanel from './components/AnswerPanel';
 import ScoreResult from './components/ScoreResult';
+import WelcomePopup from './components/WelcomePopup';
 import { startInterview, generateQuestions, scoreResponse } from './api';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import HistoryPage from './components/HistoryPage';
@@ -18,7 +19,21 @@ function AppContent() {
   const [scores, setScores] = useState({}); // { [question_id]: { score, reasoning } }
   const [mode, setMode] = useState(() => localStorage.getItem('themeMode') || 'light');
   const [userName, setUserName] = useState('');
+  const [showWelcome, setShowWelcome] = useState(false);
   const navigate = useNavigate();
+
+  // Check if user is visiting for the first time
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('stature_has_visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const handleWelcomeClose = () => {
+    setShowWelcome(false);
+    localStorage.setItem('stature_has_visited', 'true');
+  };
 
   const theme = useMemo(() => createTheme({
     palette: {
@@ -192,6 +207,7 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <WelcomePopup open={showWelcome} onClose={handleWelcomeClose} />
       <AppBar 
         position="static" 
         elevation={0} 
@@ -228,7 +244,7 @@ function AppContent() {
               navigate('/');
             }}
           >
-            AI Interview Practice
+            Stature
           </Typography>
           
           <Stack direction="row" spacing={1}>
